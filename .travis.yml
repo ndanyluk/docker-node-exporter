@@ -1,0 +1,25 @@
+sudo: required
+
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y install docker-ce
+  - sudo service docker restart
+
+script:
+  - docker build -t ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER .
+
+after_success:
+  - if [ -z "$DOCKER_USER" ]; then
+      echo "PR build, skipping Docker Hub push";
+    else
+    docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
+    docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:0.18.0;
+    docker push ndanyluk/node-exporter-amd64:0.18.0;
+    fi
