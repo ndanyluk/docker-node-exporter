@@ -1,0 +1,12 @@
+FROM alpine:3.9.3
+
+#COPY x86_64_qemu-x86_64-static.tar.gz  /usr/bin
+COPY bin/node_exporter_x86_64          /bin/node_exporter
+COPY conf                              /etc/node-exporter
+
+ENV NODE_ID=none
+
+EXPOSE     9100
+USER       root
+ENTRYPOINT [ "/etc/node-exporter/docker-entrypoint.sh" ]
+CMD [ "/bin/node_exporter" ]
