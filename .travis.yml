@@ -15,7 +15,7 @@ before_install:
 script:
   - docker run --rm --privileged multiarch/qemu-user-static:register
   - for target_arch in x86_64 aarch64 arm; do
-      wget -N https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-${target_arch}-static.tar.gz
+      wget -Nv https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-${target_arch}-static.tar.gz
       tar -xzvf qemu-${target_arch}-static.tar.gz 
     done
   - docker build -f Dockerfile.amd64 -t ndanyluk/node-exporter:$TRAVIS_BUILD_NUMBER .

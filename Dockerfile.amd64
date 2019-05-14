@@ -1,14 +1,8 @@
 FROM alpine:3.9.3
 
-<<<<<<< HEAD
 #COPY qemu-x86_64-static        /usr/bin
 COPY bin/node_exporter_x86_64  /bin/node_exporter
 COPY conf                      /etc/node-exporter
-=======
-#COPY qemu-x86_64-static.tar.gz  /usr/bin
-COPY bin/node_exporter_x86_64   /bin/node_exporter
-COPY conf                       /etc/node-exporter
->>>>>>> parent of 97d9ed0... Revert "fixed travis wget command and added armv7 binary"
 
 ENV NODE_ID=none
 
