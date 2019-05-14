@@ -27,10 +27,19 @@ after_success:
       echo "PR build, skipping Docker Hub push";
     else
     docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
+# x86_64 image
     docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:0.18.0;
+    docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:latest;
     docker push ndanyluk/node-exporter-amd64:0.18.0;
+    docker push ndanyluk/node-exporter-amd64:latest;
+# armv7 image
     docker tag ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-armv7:0.18.0;
+    docker tag ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-armv7:latest;
     docker push ndanyluk/node-exporter-armv7:0.18.0;
+    docker push ndanyluk/node-exporter-armv7:latest;
+# arm64 image
     docker tag ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-arm64:0.18.0;
+    docker tag ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-arm64:latest;
     docker push ndanyluk/node-exporter-arm64:0.18.0;
+    docker push ndanyluk/node-exporter-arm64:latest;
     fi
