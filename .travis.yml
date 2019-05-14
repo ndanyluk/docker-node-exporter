@@ -18,8 +18,9 @@ script:
       curl -L -O https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-${target_arch}-static.tar.gz;
       tar -xzvf qemu-${target_arch}-static.tar.gz;
     done
-  - docker build -f Dockerfile.amd64 -t ndanyluk/node-exporter:$TRAVIS_BUILD_NUMBER .
-#  - docker run ndanyluk/node-exporter:$TRAVIS_BUILD_NUMBER uname -a
+  - docker build -f Dockerfile.amd64 -t ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER .
+  - docker build -f Dockerfile.armv7 -t ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER .
+  - docker build -f Dockerfile.arm64 -t ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER .
 
 after_success:
   - if [ -z "$DOCKER_USER" ]; then
@@ -28,4 +29,8 @@ after_success:
     docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
     docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:0.18.0;
     docker push ndanyluk/node-exporter-amd64:0.18.0;
+    docker tag ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-armv7:0.18.0;
+    docker push ndanyluk/node-exporter-armv7:0.18.0;
+    docker tag ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-arm64:0.18.0;
+    docker push ndanyluk/node-exporter-arm64:0.18.0;
     fi
