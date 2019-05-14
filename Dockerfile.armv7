@@ -1,4 +1,4 @@
-FROM alpine:3.9.3
+FROM arm32v7/alpine:3.9.4
 
 COPY qemu-arm-static          /usr/bin
 COPY bin/node_exporter_armv7  /bin/node_exporter
