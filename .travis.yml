@@ -5,38 +5,55 @@ language: generic
 services:
   - docker
 
+env:
+  global:
+    - target_version=0.18.0
+    - target_platform=linux
+    - qemu_version=4.0.0
+  matrix:
+    - target_arch=amd64 qemu_arch=x86_64
+    - target_arch=armv7 qemu_arch=arm
+    - target_arch=armv6 qemu_arch=arm
+    - target_arch=arm64 qemu_arch=aarch64
+
 before_install:
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get update
   - sudo apt-get -y install docker-ce
   - sudo service docker restart
+  - mkdir bin
+
+install:
+  - docker run --rm --privileged multiarch/qemu-user-static:register
+  - curl -sLO https://github.com/multiarch/qemu-user-static/releases/download/v${qemu_version}/qemu-${qemu_arch}-static.tar.gz;
+  - tar -xzvf qemu-${qemu_arch}-static.tar.gz;
+  - curl -sLO https://github.com/prometheus/node_exporter/releases/download/v${target_version}/sha256sums.txt
+  - curl -sLO https://github.com/prometheus/node_exporter/releases/download/v${target_version}/node_exporter-${target_version}.${target_platform}-${target_arch}.tar.gz;
+  - if [ ! -z "$(sha256sum -c sha256sums.txt 2> /dev/null | grep OK)" ]; then
+      tar -xzvf node_exporter-${target_version}.${target_platform}-${target_arch}.tar.gz;
+      cd node_exporter-${target_version}.${target_platform}-${target_arch};
+      cp node_exporter ../bin/node_exporter_${target_arch};
+      cd ..;
+    fi;
+  - rm node_exporter-${target_version}.${target_platform}-${target_arch}.tar.gz;
+  - rm -rf node_exporter-${target_version}.${target_platform}-${target_arch};
+  - rm sha256sums.txt
+  - docker build -f Dockerfile.${target_arch} -t ndanyluk/node-exporter-${target_arch}:$TRAVIS_BUILD_NUMBER .
 
 script:
-  - docker run --rm --privileged multiarch/qemu-user-static:register
-  - for target_arch in x86_64 aarch64 arm; do
-      curl -L -O https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-${target_arch}-static.tar.gz;
-      tar -xzvf qemu-${target_arch}-static.tar.gz;
-    done
-  - docker build -f Dockerfile.amd64 -t ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER .
-  - docker build -f Dockerfile.armv7 -t ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER .
-  - docker build -f Dockerfile.arm64 -t ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER .
+  - sudo docker run -d -v /etc/hostname:/etc/nodename --name node-exporter ndanyluk/node-exporter-${target_arch}:$TRAVIS_BUILD_NUMBER
+  - sudo docker ps | grep -q node-exporter
 
 after_success:
   - if [ -z "$DOCKER_USER" ]; then
       echo "PR build, skipping Docker Hub push";
+    elif [ "$TRAVIS_BRANCH" != "master" ]; then
+      echo "Branch build, skipping Docker Hub push";
     else
-    docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
-    docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:0.18.0;
-    docker tag ndanyluk/node-exporter-amd64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-amd64:latest;
-    docker push ndanyluk/node-exporter-amd64:0.18.0;
-    docker push ndanyluk/node-exporter-amd64:latest;
-    docker tag ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-armv7:0.18.0;
-    docker tag ndanyluk/node-exporter-armv7:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-armv7:latest;
-    docker push ndanyluk/node-exporter-armv7:0.18.0;
-    docker push ndanyluk/node-exporter-armv7:latest;
-    docker tag ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-arm64:0.18.0;
-    docker tag ndanyluk/node-exporter-arm64:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-arm64:latest;
-    docker push ndanyluk/node-exporter-arm64:0.18.0;
-    docker push ndanyluk/node-exporter-arm64:latest;
+      docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
+      docker tag ndanyluk/node-exporter-${target_arch}:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-${target_arch}:${target_version};
+      docker tag ndanyluk/node-exporter-${target_arch}:$TRAVIS_BUILD_NUMBER ndanyluk/node-exporter-${target_arch}:latest;
+      docker push ndanyluk/node-exporter-${target_arch}:${target_version};
+      docker push ndanyluk/node-exporter-${target_arch}:latest;
     fi

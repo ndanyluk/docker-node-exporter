@@ -1,6 +1,7 @@
 FROM alpine:3.9.4
 
-COPY qemu-x86_64-static        /usr/bin
+#COPY qemu-x86_64-static        /usr/bin
+
 COPY bin/node_exporter_x86_64  /bin/node_exporter
 COPY conf                      /etc/node-exporter
 

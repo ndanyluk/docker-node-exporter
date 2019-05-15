@@ -1,8 +1,8 @@
-FROM arm32v7/alpine:3.9.4
+FROM arm32v6/alpine:3.9.4
 
 COPY qemu-arm-static           /usr/bin/
 
-COPY /bin/node_exporter_armv7  /bin/node_exporter
+COPY /bin/node_exporter_armv6  /bin/node_exporter
 COPY conf                      /etc/node-exporter
 
 ENV NODE_ID=none
