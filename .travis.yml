@@ -57,3 +57,20 @@ after_success:
       docker push ndanyluk/node-exporter-${target_arch}:${target_version};
       docker push ndanyluk/node-exporter-${target_arch}:latest;
     fi
+jobs:
+  include:
+    - stage: deploy
+      install: skip
+      script: skip
+      after_success:
+        - if [ -z "$DOCKER_USER" ]; then
+            echo "PR build, skipping Docker Hub push";
+          elif [ "$TRAVIS_BRANCH" != "master" ]; then
+            echo "Branch build, skipping Docker Hub push";
+          else
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
+            docker manifest create ndanyluk/node-exporter:${target_version} ndanyluk/node-exporter-armv6:${target_version} ndanyluk/node-exporter-arm64:${target_version} ndanyluk/prometheus-amd64:${target_version};
+            docker manifest create ndanyluk/node-exporter:latest ndanyluk/node-exporter-armv6:latest ndanyluk/node-exporter-arm64:latest ndanyluk/node-exporter-amd64:latest;
+            docker manifest push ndanyluk/node-exporter:${target_version};
+            docker manifest push ndanyluk/node-exporter:latest;
+fi
