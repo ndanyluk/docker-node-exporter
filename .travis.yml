@@ -7,7 +7,7 @@ services:
 
 env:
   global:
-    - target_version=0.18.0
+    - target_version=0.18.1
     - target_platform=linux
     - qemu_version=4.0.0
   matrix:
@@ -21,6 +21,10 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get update
   - sudo apt-get -y install docker-ce
+  - mkdir $HOME/.docker
+  - 'echo "{" > $HOME/.docker/config.json'
+  - 'echo "  \"experimental\": \"enabled\"" >> $HOME/.docker/config.json'
+  - 'echo "}" >> $HOME/.docker/config.json'
   - sudo service docker restart
   - mkdir bin
 
@@ -57,6 +61,7 @@ after_success:
       docker push ndanyluk/node-exporter-${target_arch}:${target_version};
       docker push ndanyluk/node-exporter-${target_arch}:latest;
     fi
+
 jobs:
   include:
     - stage: deploy
@@ -69,8 +74,8 @@ jobs:
             echo "Branch build, skipping Docker Hub push";
           else
             docker login -u "$DOCKER_USER" -p "$DOCKER_PASS";
-            docker manifest create ndanyluk/node-exporter:${target_version} ndanyluk/node-exporter-armv6:${target_version} ndanyluk/node-exporter-arm64:${target_version} ndanyluk/prometheus-amd64:${target_version};
+            docker manifest create ndanyluk/node-exporter:${target_version} ndanyluk/node-exporter-armv6:${target_version} ndanyluk/node-exporter-arm64:${target_version} ndanyluk/node-exporter-amd64:${target_version};
             docker manifest create ndanyluk/node-exporter:latest ndanyluk/node-exporter-armv6:latest ndanyluk/node-exporter-arm64:latest ndanyluk/node-exporter-amd64:latest;
             docker manifest push ndanyluk/node-exporter:${target_version};
             docker manifest push ndanyluk/node-exporter:latest;
-fi
+          fi
